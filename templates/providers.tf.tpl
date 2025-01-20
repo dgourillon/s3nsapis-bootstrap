@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Google LLC
+ * Copyright 2022 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-locals {
-  principals = {
-    for k, v in var.groups : k => (
-      can(regex("^[a-zA-Z]+:", v))
-      ? v
-      : "group:${v}@${var.organization.domain}"
-    )
-  }
-  locations = {
-    bq      = var.locations.bq
-    gcs     = var.locations.gcs
-    logging = var.locations.logging
-    pubsub  = var.locations.pubsub
+terraform {
+  backend "gcs" {
+    bucket                      = "${bucket}"
+    impersonate_service_account = "${sa}"
+    %{~ if backend_extra != null ~}
+    ${indent(4, backend_extra)}
+    %{~ endif ~}
   }
 }
+provider "google" {
+  impersonate_service_account = "${sa}"
+}
+provider "google-beta" {
+  impersonate_service_account = "${sa}"
+}
+
+# end provider.tf for ${name}
